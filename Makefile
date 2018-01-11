@@ -31,6 +31,3 @@ doc: README.md
 $(KAFKA_ROOT):
 	@mkdir -p $(dir $@)
 	cd $(dir $@) && curl -sSL $(KAFKA_SRC) | tar xz
-
-README.md: README.md.tpl $(wildcard *.go)
-	becca -package $(subst $(GOPATH)/src/,,$(PWD))
