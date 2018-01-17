@@ -109,11 +109,6 @@ func testCmd(name string, arg ...string) *exec.Cmd {
 	return cmd
 }
 
-type testConsumerMessage struct {
-	sarama.ConsumerMessage
-	ConsumerID string
-}
-
 var _ = BeforeSuite(func() {
 	testZkCmd = testCmd(
 		testDataDir(testKafkaRoot, "bin", "kafka-run-class.sh"),

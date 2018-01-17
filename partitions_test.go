@@ -95,7 +95,7 @@ var _ = Describe("partitionMap", func() {
 		subject.Store("topic", 1, pc1)
 		subject.Fetch("topic", 1).MarkOffset(2001)
 
-		Expect(subject.Snapshot()).To(Equal(map[topicPartition]int64{
+		Expect(subject.Snapshot()).To(Equal(map[TopicPartition]int64{
 			{"topic", 0}: 2000,
 			{"topic", 1}: 2001,
 		}))

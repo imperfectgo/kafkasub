@@ -1,10 +1,11 @@
 package kafkasub
 
 import (
-	"fmt"
 	"regexp"
 	"sync/atomic"
 	"time"
+
+	"sort"
 
 	"github.com/Shopify/sarama"
 	. "github.com/onsi/ginkgo"
@@ -178,16 +179,21 @@ var _ = Describe("Consumer", func() {
 	})
 
 	It("should consume/mark/resume", func() {
-		acc := make(chan *testConsumerMessage, 20000)
-		consume := func(consumerID string, max int32) {
+		acc := make(chan *sarama.ConsumerMessage, 20000)
+		offsetsCh := make(chan map[TopicPartition]int64)
+
+		consume := func(max int32, bootstrapOffsets map[TopicPartition]int64) {
 			defer GinkgoRecover()
 
-			cs, err := NewConsumer(testKafkaAddrs, testTopics, nil)
+			cs, err := NewConsumer(testKafkaAddrs, testTopics, nil, WithBootstrapOffsets(bootstrapOffsets))
 			Expect(err).NotTo(HaveOccurred())
-			defer cs.Close()
+			defer func() {
+				offsetsCh <- cs.Offsets()
+				cs.Close()
+			}()
 
 			for msg := range cs.Messages() {
-				acc <- &testConsumerMessage{*msg, consumerID}
+				acc <- msg
 				cs.MarkOffset(msg)
 
 				if atomic.AddInt32(&max, -1) <= 0 {
@@ -196,35 +202,59 @@ var _ = Describe("Consumer", func() {
 			}
 		}
 
-		go consume("C1", 5300)
+		func() {
+			defer GinkgoRecover()
+			cs1, err := NewConsumer(testKafkaAddrs, testTopics, nil)
+			Expect(err).NotTo(HaveOccurred())
+			defer cs1.Close()
+
+		}()
+
+		go consume(5300, nil)
 		time.Sleep(10 * time.Second) // wait for consumers to subscribe to topics
 		Expect(testSeed(5000)).NotTo(HaveOccurred())
 		Eventually(func() int { return len(acc) }, "30s", "100ms").Should(Equal(5300))
 
-		go consume("C2", 3700)
+		go consume(3700, <-offsetsCh)
 		Expect(testSeed(5000)).NotTo(HaveOccurred())
 		Eventually(func() int { return len(acc) }, "30s", "100ms").Should(Equal(9000))
 
-		go consume("C3", 1000)
+		go consume(1000, <-offsetsCh)
 		Expect(testSeed(5000)).NotTo(HaveOccurred())
 		Eventually(func() int { return len(acc) }, "30s", "100ms").Should(Equal(10000))
 
-		go consume("C4", 4000)
+		go consume(4000, <-offsetsCh)
 		Expect(testSeed(5000)).NotTo(HaveOccurred())
 		Eventually(func() int { return len(acc) }, "30s", "100ms").Should(Equal(14000))
 
-		go consume("C5", 1000)
+		go consume(1000, <-offsetsCh)
 		Expect(testSeed(5000)).NotTo(HaveOccurred())
 		Eventually(func() int { return len(acc) }, "30s", "100ms").Should(Equal(15000))
 
+		lastOffsets := <-offsetsCh
 		close(acc)
 
-		uniques := make(map[string][]string)
+		collected := make(map[TopicPartition][]int64)
 		for msg := range acc {
-			key := fmt.Sprintf("%s/%d/%d", msg.Topic, msg.Partition, msg.Offset)
-			uniques[key] = append(uniques[key], msg.ConsumerID)
+			key := TopicPartition{Topic: msg.Topic, Partition: msg.Partition}
+			collected[key] = append(collected[key], msg.Offset)
 		}
-		Expect(uniques).To(HaveLen(15000))
+		// Sort collected
+		for _, offsets := range collected {
+			sort.Sort(int64Slice(offsets))
+
+			for i := 1; i < len(offsets); i++ {
+				if offsets[i] != offsets[i-1] {
+
+				}
+				Expect(offsets[i]).To(Equal(offsets[i-1] + 1))
+			}
+		}
+		for tp, off := range lastOffsets {
+			collectedOff := collected[tp]
+			Expect(collectedOff).NotTo(Equal(0))
+			Expect(collectedOff[len(collectedOff)-1]).To(Equal(off - 1))
+		}
 	})
 
 	It("should allow close to be called multiple times", func() {
@@ -235,3 +265,9 @@ var _ = Describe("Consumer", func() {
 	})
 
 })
+
+type int64Slice []int64
+
+func (p int64Slice) Len() int           { return len(p) }
+func (p int64Slice) Less(i, j int) bool { return p[i] < p[j] }
+func (p int64Slice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
