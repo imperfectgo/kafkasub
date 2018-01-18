@@ -8,13 +8,13 @@ import (
 
 type none struct{}
 
-type topicPartition struct {
+type TopicPartition struct {
 	Topic     string
 	Partition int32
 }
 
 // String returns the string representation of the topic and partition.
-func (tp *topicPartition) String() string {
+func (tp *TopicPartition) String() string {
 	return fmt.Sprintf("%s-%d", tp.Topic, tp.Partition)
 }
 

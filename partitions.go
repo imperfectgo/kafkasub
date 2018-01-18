@@ -166,13 +166,13 @@ func (c *partitionConsumer) MarkOffset(offset int64) {
 }
 
 type partitionMap struct {
-	data map[topicPartition]*partitionConsumer
+	data map[TopicPartition]*partitionConsumer
 	mu   sync.RWMutex
 }
 
 func newPartitionMap() *partitionMap {
 	return &partitionMap{
-		data: make(map[topicPartition]*partitionConsumer),
+		data: make(map[TopicPartition]*partitionConsumer),
 	}
 }
 
@@ -190,22 +190,22 @@ func (m *partitionMap) IsSubscribedTo(topic string) bool {
 
 func (m *partitionMap) Fetch(topic string, partition int32) *partitionConsumer {
 	m.mu.RLock()
-	pc, _ := m.data[topicPartition{topic, partition}]
+	pc, _ := m.data[TopicPartition{topic, partition}]
 	m.mu.RUnlock()
 	return pc
 }
 
 func (m *partitionMap) Store(topic string, partition int32, pc *partitionConsumer) {
 	m.mu.Lock()
-	m.data[topicPartition{topic, partition}] = pc
+	m.data[TopicPartition{topic, partition}] = pc
 	m.mu.Unlock()
 }
 
-func (m *partitionMap) Snapshot() map[topicPartition]int64 {
+func (m *partitionMap) Snapshot() map[TopicPartition]int64 {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	snap := make(map[topicPartition]int64, len(m.data))
+	snap := make(map[TopicPartition]int64, len(m.data))
 	for tp, pc := range m.data {
 		snap[tp] = pc.Offset()
 	}

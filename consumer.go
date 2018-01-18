@@ -16,8 +16,9 @@ type Consumer struct {
 	consumer sarama.Consumer
 	subs     *partitionMap
 
-	coreTopics  []string
-	extraTopics []string
+	bootstrapOffsets map[TopicPartition]int64
+	coreTopics       []string
+	extraTopics      []string
 
 	dying, dead chan none
 	closeOnce   sync.Once
@@ -29,13 +30,13 @@ type Consumer struct {
 }
 
 // NewConsumer initializes a new consumer
-func NewConsumer(addrs []string, topics []string, config *Config) (*Consumer, error) {
+func NewConsumer(addrs []string, topics []string, config *Config, options ...Option) (*Consumer, error) {
 	client, err := NewClient(addrs, config)
 	if err != nil {
 		return nil, err
 	}
 
-	consumer, err := NewConsumerFromClient(client, topics)
+	consumer, err := NewConsumerFromClient(client, topics, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +50,7 @@ func NewConsumer(addrs []string, topics []string, config *Config) (*Consumer, er
 // they can only be re-used which requires the user to call Close() on the first consumer
 // before using this method again to initialize another one. Attempts to use a client with
 // more than one consumer at a time will return errors.
-func NewConsumerFromClient(client *Client, topics []string) (*Consumer, error) {
+func NewConsumerFromClient(client *Client, topics []string, options ...Option) (*Consumer, error) {
 	if !client.claim() {
 		return nil, errClientInUse
 	}
@@ -74,6 +75,10 @@ func NewConsumerFromClient(client *Client, topics []string) (*Consumer, error) {
 		messages:   make(chan *sarama.ConsumerMessage),
 		errors:     make(chan error, client.config.ChannelBufferSize),
 		partitions: make(chan PartitionConsumer, 1),
+	}
+
+	for _, opt := range options {
+		opt.apply(c)
 	}
 
 	go c.mainLoop()
@@ -127,9 +132,14 @@ func (c *Consumer) MarkPartitionOffset(topic string, partition int32, offset int
 	c.subs.Fetch(topic, partition).MarkOffset(offset + 1)
 }
 
-// Subscriptions returns the consumed topics and partitions
+// Subscriptions returns the consumed topics and partitions.
 func (c *Consumer) Subscriptions() map[string][]int32 {
 	return c.subs.Info()
+}
+
+// Offsets returns current offsets for consumed topics and partitions.
+func (c *Consumer) Offsets() map[TopicPartition]int64 {
+	return c.subs.Snapshot()
 }
 
 // Close safely closes the consumer and releases all resources
@@ -182,14 +192,14 @@ func (c *Consumer) mainLoop() {
 		}
 
 		// Start next consume cycle
-		c.nextTick()
+		c.nextTick(c.bootstrapOffsets)
+
+		// Remember previous offsets
+		c.bootstrapOffsets = c.subs.Snapshot()
 	}
 }
 
-func (c *Consumer) nextTick() {
-	// Remember previous snapshot
-	snapshot := c.subs.Snapshot()
-
+func (c *Consumer) nextTick(snapshot map[TopicPartition]int64) {
 	// Release subscriptions
 	if err := c.release(); err != nil {
 		c.rebalanceError(err)
@@ -353,7 +363,7 @@ func (c *Consumer) rebalance() (map[string][]int32, error) {
 }
 
 // Performs the subscription, part of the mainLoop()
-func (c *Consumer) subscribe(tomb *loopTomb, subs map[string][]int32, snapshot map[topicPartition]int64) (err error) {
+func (c *Consumer) subscribe(tomb *loopTomb, subs map[string][]int32, snapshot map[TopicPartition]int64) (err error) {
 	// fetch offsets
 	offsets, err := c.fetchOffsets(subs, snapshot)
 	if err != nil {
@@ -388,13 +398,13 @@ func (c *Consumer) subscribe(tomb *loopTomb, subs map[string][]int32, snapshot m
 }
 
 // Fetches latest offsets for all subscriptions
-func (c *Consumer) fetchOffsets(subs map[string][]int32, snapshot map[topicPartition]int64) (map[string]map[int32]int64, error) {
+func (c *Consumer) fetchOffsets(subs map[string][]int32, snapshot map[TopicPartition]int64) (map[string]map[int32]int64, error) {
 	offsets := make(map[string]map[int32]int64, len(subs))
 	for topic, partitions := range subs {
 		offsets[topic] = make(map[int32]int64, len(partitions))
 		for _, partition := range partitions {
 			// Merge snapshot into new offsets
-			offset, ok := snapshot[topicPartition{Topic: topic, Partition: partition}]
+			offset, ok := snapshot[TopicPartition{Topic: topic, Partition: partition}]
 			if !ok {
 				offset = c.client.config.Consumer.Offsets.Initial
 			}
