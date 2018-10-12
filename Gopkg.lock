@@ -2,42 +2,55 @@
 
 
 [[projects]]
+  digest = "1:f11e03e8297265765272534835027251cc808ed6dab124f5f5dbc37f7c908abb"
   name = "github.com/Shopify/sarama"
   packages = ["."]
-  revision = "3b1b38866a79f06deddf0487d5c27ba0697ccd65"
-  version = "v1.15.0"
+  pruneopts = ""
+  revision = "ec843464b50d4c8b56403ec9d589cf41ea30e722"
+  version = "v1.19.0"
 
 [[projects]]
+  digest = "1:56c130d885a4aacae1dd9c7b71cfe39912c7ebc1ff7d2b46083c8812996dc43b"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = ""
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:f714fa0ab4449a2fe13d156446ac1c1e16bc85334e9be320d42bf8bee362ba45"
   name = "github.com/eapache/go-resiliency"
   packages = ["breaker"]
+  pruneopts = ""
   revision = "6800482f2c813e689c88b7ed3282262385011890"
   version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:1f7503fa58a852a1416556ae2ddb219b49a1304fd408391948e2e3676514c48d"
   name = "github.com/eapache/go-xerial-snappy"
   packages = ["."]
+  pruneopts = ""
   revision = "bb955e01b9346ac19dc29eb16586c90ded99a98c"
 
 [[projects]]
+  digest = "1:d8d46d21073d0f65daf1740ebf4629c65e04bf92e14ce93c2201e8624843c3d3"
   name = "github.com/eapache/queue"
   packages = ["."]
+  pruneopts = ""
   revision = "44cc805cf13205b55f69e14bcb69867d1ae92f98"
   version = "v1.1.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:09307dfb1aa3f49a2bf869dcfa4c6c06ecd3c207221bd1c1a1141f0e51f209eb"
   name = "github.com/golang/snappy"
   packages = ["."]
+  pruneopts = ""
   revision = "553a641470496b2327abcac10b36396bd98e45c9"
 
 [[projects]]
+  digest = "1:32b27072cd55bd2fb7244de0425943d125da6a552ae2b6517cdd965a662baf18"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -57,12 +70,14 @@
     "reporters/stenographer",
     "reporters/stenographer/support/go-colorable",
     "reporters/stenographer/support/go-isatty",
-    "types"
+    "types",
   ]
+  pruneopts = ""
   revision = "9eda700730cba42af70d53180f9dcce9266bc2bc"
   version = "v1.4.0"
 
 [[projects]]
+  digest = "1:44febbaa3af725dccbe3d83b21ef155f7136670a419bb24a91383bb27d6dcbd4"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -76,47 +91,59 @@
     "matchers/support/goraph/edge",
     "matchers/support/goraph/node",
     "matchers/support/goraph/util",
-    "types"
+    "types",
   ]
+  pruneopts = ""
   revision = "003f63b7f4cff3fc95357005358af2de0f5fe152"
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:52b8f1dc01c8a930900aa94e227b0c4c36e7102a5b124687ff1f88a221590234"
   name = "github.com/pierrec/lz4"
   packages = ["."]
+  pruneopts = ""
   revision = "2fcda4cb7018ce05a25959d2fe08c83e3329f169"
   version = "v1.1"
 
 [[projects]]
+  digest = "1:ff95a6c61f34f32e57833783059c80274d84e9c74e6e315c3dc2e93e9bf3dab9"
   name = "github.com/pierrec/xxHash"
   packages = ["xxHash32"]
+  pruneopts = ""
   revision = "f051bb7f1d1aaf1b5a665d74fb6b0217712c69f7"
   version = "v0.1.1"
 
 [[projects]]
   branch = "master"
+  digest = "1:00606e8d0c9c0500d09ac0785aebbe51014266088810c7254347b0d048beb29e"
   name = "github.com/rcrowley/go-metrics"
   packages = ["."]
+  pruneopts = ""
   revision = "e181e095bae94582363434144c61a9653aff6e50"
 
 [[projects]]
   branch = "master"
+  digest = "1:cf18df59978fa61823ae19ca67c1eded2077045f064812b204eeb3ee84e6466d"
   name = "golang.org/x/net"
   packages = [
     "html",
     "html/atom",
-    "html/charset"
+    "html/charset",
   ]
+  pruneopts = ""
   revision = "434ec0c7fe3742c984919a691b2018a6e9694425"
 
 [[projects]]
   branch = "master"
+  digest = "1:b22916910a1104a56a5a64a208de1f3f58e69cde1cca3229f8b54f531df1be69"
   name = "golang.org/x/sys"
   packages = ["unix"]
+  pruneopts = ""
   revision = "810d7000345868fc619eb81f46307107118f4ae1"
 
 [[projects]]
   branch = "master"
+  digest = "1:9f9562b058a594dae0c8e2388c1a802664111736845bc08885246f0e4bf99bdd"
   name = "golang.org/x/text"
   packages = [
     "encoding",
@@ -135,19 +162,26 @@
     "language",
     "runes",
     "transform",
-    "unicode/cldr"
+    "unicode/cldr",
   ]
+  pruneopts = ""
   revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
 
 [[projects]]
   branch = "v2"
+  digest = "1:4b4e5848dfe7f316f95f754df071bebfb40cf4482da62e17e7e1aebdf11f4918"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = ""
   revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cda996eda8b6f7959698324ac64229465ad0fbe70f807fe4b9381ab9d983a215"
+  input-imports = [
+    "github.com/Shopify/sarama",
+    "github.com/onsi/ginkgo",
+    "github.com/onsi/gomega",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
